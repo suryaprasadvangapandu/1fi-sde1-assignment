@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getAllProducts } from '@/lib/data-service';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const productCount = await prisma.product.count();
-    const variantCount = await prisma.variant.count();
-    const emiPlanCount = await prisma.eMIPlan.count();
+    const products = await getAllProducts();
+    const variantCount = products.reduce((acc, p) => acc + (p.variants?.length || 0), 0);
+    const emiPlanCount = products.reduce((acc, p) => acc + (p.emiPlans?.length || 0), 0);
 
     return NextResponse.json({
       status: 'healthy',
@@ -14,7 +16,7 @@ export async function GET() {
       database: {
         status: 'connected',
         stats: {
-          products: productCount,
+          products: products.length,
           variants: variantCount,
           emiPlans: emiPlanCount,
         },
