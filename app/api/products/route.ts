@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getAllProducts } from '@/lib/data-service';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,111 +10,37 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     const featured = searchParams.get('featured');
 
-    const whereClause: Record<string, unknown> = {};
+    let products = await getAllProducts();
 
     if (brand && brand !== 'All') {
-      whereClause.brand = { equals: brand };
+      products = products.filter((p) => p.brand.toLowerCase() === brand.toLowerCase());
     }
 
     if (search) {
-      whereClause.OR = [
-        { name: { contains: search } },
-        { brand: { contains: search } },
-        { description: { contains: search } },
-      ];
+      const q = search.toLowerCase();
+      products = products.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.brand.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q)
+      );
     }
 
     if (featured === 'true') {
-      whereClause.isFeatured = true;
+      products = products.filter((p) => p.isFeatured);
     }
-
-    const products = await prisma.product.findMany({
-      where: whereClause,
-      include: {
-        variants: {
-          orderBy: [{ isDefault: 'desc' }, { price: 'asc' }],
-        },
-        emiPlans: {
-          orderBy: { orderIndex: 'asc' },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    // Transform products with computed metadata
-    const responseData = products.map((product) => {
-      const defaultVariant = product.variants.find((v) => v.isDefault) || product.variants[0];
-      const lowestEmi = product.emiPlans.reduce((min, plan) => {
-        return plan.monthlyAmount < min ? plan.monthlyAmount : min;
-      }, product.emiPlans[0]?.monthlyAmount || 0);
-
-      const zeroCostPlan = product.emiPlans.find((p) => p.isZeroCost);
-
-      let parsedSpecs = {};
-      try {
-        parsedSpecs = JSON.parse(product.specifications);
-      } catch {
-        parsedSpecs = {};
-      }
-
-      let parsedHighlights: string[] = [];
-      try {
-        parsedHighlights = JSON.parse(product.highlights);
-      } catch {
-        parsedHighlights = [];
-      }
-
-      return {
-        id: product.id,
-        slug: product.slug,
-        name: product.name,
-        brand: product.brand,
-        tagline: product.tagline,
-        description: product.description,
-        rating: product.rating,
-        reviewCount: product.reviewCount,
-        isNew: product.isNew,
-        isFeatured: product.isFeatured,
-        startingPrice: defaultVariant?.price || 0,
-        startingMrp: defaultVariant?.mrp || 0,
-        discountPercent: defaultVariant
-          ? Math.round(((defaultVariant.mrp - defaultVariant.price) / defaultVariant.mrp) * 100)
-          : 0,
-        lowestMonthlyEmi: lowestEmi,
-        hasZeroCostEmi: !!zeroCostPlan,
-        defaultVariant,
-        variantsCount: product.variants.length,
-        colorsCount: new Set(product.variants.map((v) => v.colorName)).size,
-        availableFinishes: Array.from(
-          new Map(product.variants.map((v) => [v.colorName, { name: v.colorName, hex: v.colorHex }])).values()
-        ),
-        variants: product.variants.map((v) => ({
-          ...v,
-          images: (() => {
-            try {
-              return JSON.parse(v.images);
-            } catch {
-              return [v.imageUrl];
-            }
-          })(),
-        })),
-        emiPlans: product.emiPlans,
-        specifications: parsedSpecs,
-        highlights: parsedHighlights,
-      };
-    });
 
     return NextResponse.json({
       success: true,
-      count: responseData.length,
-      data: responseData,
+      count: products.length,
+      data: products,
     });
   } catch (error) {
     console.error('API /api/products error:', error);
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch products from database',
+        error: 'Failed to fetch products',
         details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }

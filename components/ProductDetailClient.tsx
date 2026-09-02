@@ -34,27 +34,10 @@ interface VariantData {
   isDefault: boolean;
 }
 
-interface ProductData {
-  id: string;
-  slug: string;
-  name: string;
-  brand: string;
-  tagline: string;
-  description: string;
-  rating: number;
-  reviewCount: number;
-  isNew: boolean;
-  availableFinishes: { colorName: string; colorHex: string; sampleImage: string }[];
-  availableStorages: string[];
-  variants: VariantData[];
-  defaultVariant: VariantData;
-  emiPlans: EMIPlanItem[];
-  specifications: Record<string, string>;
-  highlights: string[];
-}
+import { ProductItem } from '@/lib/data-service';
 
 interface ProductDetailClientProps {
-  product: ProductData;
+  product: ProductItem;
   allProducts: { id: string; slug: string; name: string; brand: string; startingPrice: number; defaultVariant: { imageUrl: string } }[];
 }
 
