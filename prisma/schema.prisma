@@ -1,0 +1,79 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Product {
+  id             String      @id @default(cuid())
+  slug           String      @unique
+  name           String
+  brand          String
+  tagline        String      @default("EMI plans backed by mutual funds")
+  description    String
+  rating         Float       @default(4.8)
+  reviewCount    Int         @default(1250)
+  isNew          Boolean     @default(false)
+  isFeatured     Boolean     @default(true)
+  specifications String      // JSON string of key-value specs
+  highlights     String      // JSON string of feature highlights
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  variants       Variant[]
+  emiPlans       EMIPlan[]
+}
+
+model Variant {
+  id         String   @id @default(cuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  storage    String   // e.g. "256GB", "512GB", "1TB"
+  colorName  String   // e.g. "Desert Titanium", "Natural Titanium", "Black Titanium"
+  colorHex   String   // e.g. "#D4AF37", "#8A8680", "#2B2B2B"
+  mrp        Int      // MRP in INR, e.g. 134900
+  price      Int      // Discounted Price in INR, e.g. 127400
+  imageUrl   String   // Main image URL
+  images     String   // JSON string of image URLs
+  stock      Int      @default(25)
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model EMIPlan {
+  id                    String   @id @default(cuid())
+  productId             String
+  product               Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tenureMonths          Int      // 3, 6, 12, 24, 36, 48, 60
+  monthlyAmount         Int      // Calculated base monthly EMI
+  interestRate          Float    // 0.0 or 10.5 (%)
+  cashbackAmount        Int      @default(7500) // INR cashback
+  isZeroCost            Boolean  @default(false)
+  isRecommended         Boolean  @default(false)
+  processingFee         Int      @default(0)
+  minMutualFundPortfolio Int     @default(50000)
+  orderIndex            Int      @default(0)
+  createdAt             DateTime @default(now())
+}
+
+model Application {
+  id                    String   @id @default(cuid())
+  productName           String
+  variantInfo           String
+  monthlyEmi            Int
+  tenureMonths          Int
+  interestRate          Float
+  totalAmount           Int
+  cashbackAmount        Int
+  fullName              String
+  email                 String
+  phone                 String
+  panNumber             String
+  mfFolioNumber         String
+  pledgedPortfolioValue Int
+  status                String   @default("APPROVED")
+  createdAt             DateTime @default(now())
+}
