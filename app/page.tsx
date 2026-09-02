@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 import HomeClient from '@/components/HomeClient';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: '1Fi - Smartphones on EMI Backed by Mutual Funds',
   description:
