@@ -8,8 +8,9 @@ Built for the **1Fi SDE1 Assignment** adhering to all design, backend, database,
 
 ## 🚀 Live Demo & Repository
 
-- **Demo URL**: [https://1fi-sde1-assignment.vercel.app](https://1fi-sde1-assignment.vercel.app) *(or run locally via instructions below)*
-- **GitHub Repository**: [https://github.com/your-username/1fi-sde1-assignment](https://github.com/your-username/1fi-sde1-assignment)
+- **Demo URL**: [https://1fi-sde1-assignment.vercel.app](https://1fi-sde1-assignment.vercel.app)
+- **GitHub Repository**: [https://github.com/suryaprasadvangapandu/1fi-sde1-assignment](https://github.com/suryaprasadvangapandu/1fi-sde1-assignment)
+- **Author**: Surya Prasad Vangapandu (2200030658@kluniversity.in)
 - **Reference Webpage**: [Snapmint iPhone 17 Pro EMI Reference](https://snapmint.com/p/apple-iphone-17-pro-silver-256-gb-smart-phones-on-emi)
 
 ---
